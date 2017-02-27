@@ -26,44 +26,45 @@ typedef int bool;
 
 #define LOOP_COUNT 2000
 
+
 int main (int argc, char **argv)
 {       
-        //int argc = 2;
-        //char *argv[2];
-        
-        
-        off_t len;
+        if(argc < 2){
+            printf("usage \n");
+            printf("\toptions \n");
+            printf("\t\tshared memory control mmap location \n");
+            printf("\t\tshared memory mmap location \n");
+            printf("\tExample \n");
+            printf("\t\t./a.out SharedMemStatfile SharedMemfile \n");
+            return 1;
+        }
 
+        //file handler for data file
         struct stat sb;
         char *p;
         int fd;
 
+        //file handler for control file
         struct stat sb_control;
         char *p_control;
         int fd_process_control;
+       
+        const char* controlFileName = argv[1];
+        const char* dataFileName = argv[2];
 
-
-        
-        //argv[0] = "/home/shanaka/SharedMemStat";
-        //argv[1] = "/home/shanaka/SharedMem";
-        
         // resize file to allocate memory size
-        int no_of_buffers = 4;
-        int fileSize = CIRCULAR_BUFFER_SIZE * no_of_buffers;
-        FILE *fp = fopen(argv[2], "w");
-        //ftruncate(fileno(fp), fileSize);
+        int no_of_buffers = 16;
+        int fileSize = no_of_buffers * sizeof(circular_buffer);
+        FILE *fp = fopen(dataFileName, "w");
+        // ftruncate(fileno(fp), fileSize);
+
+        // trunkate file to the required data size
         fseek(fp, fileSize , SEEK_SET);
         fputc('\0', fp);
         fclose(fp);
-
-
-        if (argc < 2) {
-                fprintf (stderr, "usage: %s <file>\n", argv[2]);
-                return 1;
-        }
         
-        fd = open (argv[2], O_RDWR);
-        fd_process_control = open (argv[1], O_RDWR);
+        fd = open (dataFileName, O_RDWR);
+        fd_process_control = open (controlFileName, O_RDWR);
 
         if (fd == -1) {
                 perror ("open");
@@ -79,7 +80,7 @@ int main (int argc, char **argv)
                 return 1;
         }
         if (!S_ISREG (sb.st_mode)) {
-                fprintf (stderr, "%s is not a file\n", argv[2]);
+                fprintf (stderr, "%s is not a file\n", dataFileName);
                 return 1;
         }
         
@@ -97,22 +98,23 @@ int main (int argc, char **argv)
                 return 1;
         }
 
-                
         printf("mmap initialized \n");
         
 
         circular_buffer *cb_master = p;   
-        //circular_buffer *cb_master_1 = p + sizeof(circular_buffer) +1 ;   
+        circular_buffer *cb_master_1 = p + sizeof(circular_buffer) +1 ;   
 
-
+        // initialize circular buffers
         CB_init(cb_master);
-        //CB_init(cb_master_1);
+        CB_init(cb_master_1);
 
 
         printf("%llu  \n" ,  cb_master->size); 
         
-        int8_t pull_data = 0;
-        int8_t push_data = 0;
+        cb_buffer_struct pull_data;
+        cb_buffer_struct push_data;
+        strcpy( push_data.buffer, "bbb\0" );
+        char testdata[20] = "aaa\0bbb\0ccc\0ddd\0eee\0";
 
         bool cb_push_passed = true;
         
@@ -128,10 +130,10 @@ int main (int argc, char **argv)
 
         while( p_control[0] == 0x1 && whileLoop < LOOP_COUNT ){
             whileLoop++;
+            strcpy( push_data.buffer, testdata + (whileLoop%5)*4);
             
-            push_data++;
+            // push buffer data
             cb_push_passed = CB_push(cb_master, push_data);
-            //cb_push_passed = CB_push(cb_master_1, push_data);
         
             if(!cb_push_passed){
                 return 1;
@@ -139,21 +141,14 @@ int main (int argc, char **argv)
 
             p_control[1] = 0x0;
             while(p_control[1] == 0x0 && whileLoop < LOOP_COUNT)
-                continue;
-
-            //pull_data = CB_pop(cb_master); 
-            //pull_data = CB_pop(cb_master_1);     
-
-            if(whileLoop % 1 == 0){
-                //printf("cb_master   %d %llu  %llu %llu %llu\n" , pull_data, cb_master->read_offset, cb_master->write_offset,cb_master->count,cb_master->size); 
-                //printf("cb_master_1 %d %llu  %llu %llu %llu \n" , push_data, cb_master_1->read_offset, cb_master_1->write_offset,cb_master_1->count,cb_master_1->size); 
-                continue;
-            }
-
+                continue;  
         } 
 
         //stop the process using shared memory control bit        
         p_control[0] = 0x2;
+        while( p_control[0] == 0x2){
+            continue;
+        }
         
         if (munmap (p, sb.st_size) == -1) {
                 perror ("munmap");

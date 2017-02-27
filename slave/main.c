@@ -21,6 +21,7 @@
 #include "../circular_buffer.h"
 
 typedef int bool;
+
 #define true 1
 #define false 0
 
@@ -28,11 +29,15 @@ typedef int bool;
 
 int main (int argc, char **argv)
 {       
-        //int argc = 2;
-        //char *argv[2];
-        
-        
-        off_t len;
+        if(argc < 2){
+            printf("usage \n");
+            printf("\toptions \n");
+            printf("\t\tshared memory control mmap location \n");
+            printf("\t\tshared memory mmap location \n");
+            printf("\tExample \n");
+            printf("\t\t./a.out SharedMemStatfile SharedMemfile \n");
+            return 1;
+        }
 
         struct stat sb;
         char *p;
@@ -42,19 +47,12 @@ int main (int argc, char **argv)
         char *p_control;
         int fd_process_control;
 
-
         
-        //argv[0] = "/home/shanaka/SharedMemStat";
-        //argv[1] = "/home/shanaka/SharedMem";
+        const char* controlFileName = argv[1];
+        const char* dataFileName = argv[2];
 
-
-        if (argc < 2) {
-                fprintf (stderr, "usage: %s <file>\n", argv[2]);
-                return 1;
-        }
-        
         fd = open (argv[2], O_RDWR);
-        fd_process_control = open (argv[1], O_RDWR);
+        fd_process_control = open (controlFileName, O_RDWR);
 
         if (fd == -1) {
                 perror ("open");
@@ -70,7 +68,7 @@ int main (int argc, char **argv)
                 return 1;
         }
         if (!S_ISREG (sb.st_mode)) {
-                fprintf (stderr, "%s is not a file\n", argv[2]);
+                fprintf (stderr, "%s is not a file\n", dataFileName);
                 return 1;
         }
         
@@ -94,13 +92,11 @@ int main (int argc, char **argv)
 
         circular_buffer *cb_master = p ;   
         circular_buffer *cb_master_1 = p + sizeof(circular_buffer) +1;   
-
-
-        //CB_init(cb_master);
-        //CB_init(cb_master_1);
         
-        int8_t pull_data = 0;
-        int8_t push_data = 0;
+        cb_buffer_struct pull_data;
+        cb_buffer_struct push_data;
+
+        strcpy( pull_data.buffer, "aaa\0" );
 
         bool cb_push_passed = true;
         
@@ -113,12 +109,9 @@ int main (int argc, char **argv)
 
         while( p_control[0] == 0x1 && whileLoop < LOOP_COUNT ){
             whileLoop++;
-            
-            push_data++;
-            //cb_push_passed = CB_push(cb_master, push_data);
-            //cb_push_passed = CB_push(cb_master_1, push_data);
 
             p_control[1] = 0x1;
+
             while(p_control[1] == 0x1 && whileLoop < LOOP_COUNT)
                 continue;
         
@@ -126,23 +119,17 @@ int main (int argc, char **argv)
                 return 1;
             }    
 
-            pull_data = CB_pop(cb_master);  
-            //pull_data = CB_pop(cb_master_1);   
+            // pull buffer data 
+            pull_data = CB_pop(cb_master);    
 
             if(whileLoop % 1 == 0){
-                printf("cb_master   %d %llu  %llu %llu %llu\n" , pull_data, cb_master->read_offset, cb_master->write_offset,cb_master->count,cb_master->size); 
-                printf("cb_master_1 %d %llu  %llu %llu %llu \n" , push_data, cb_master_1->read_offset, cb_master_1->write_offset,cb_master_1->count,cb_master_1->size); 
+                printf("cb_master   %s %llu  %llu %llu %llu\n" , pull_data.buffer, cb_master->read_offset, cb_master->write_offset,cb_master->count,cb_master->size); 
             }
 
         } 
 
         //stop the process using shared memory control bit        
-        p_control[0] = 0x2;
+        p_control[0] = 0x3;
         
-        if (munmap (p, sb.st_size) == -1) {
-                perror ("munmap");
-                return 1;
-        }
-
         return 0;
 }

@@ -14,7 +14,7 @@ void CB_free(circular_buffer* cb)
     free(cb);
 }
 
-bool CB_push(circular_buffer* cb, char data)
+bool CB_push(circular_buffer* cb, cb_buffer_struct data)
 {
     if (cb == NULL || cb->buffer == NULL)
         return false;
@@ -22,7 +22,8 @@ bool CB_push(circular_buffer* cb, char data)
     if (CB_full(cb))
         printf("warning: circular buffer is full. failed to push data to circular buffer. \n");
     else{
-        *(cb->buffer + cb->write_offset)= data;   
+        //cb->buffer[write_offset] = data;
+        *(cb->buffer + cb->write_offset) = data;   
         cb->write_offset+=1;
         cb->count+=1;
     }
@@ -33,15 +34,16 @@ bool CB_push(circular_buffer* cb, char data)
     return true;
 }
 
-char CB_pop(circular_buffer* cb)
+cb_buffer_struct CB_pop(circular_buffer* cb)
 {    
-    char data = 0;
+    cb_buffer_struct data;
     if (cb == NULL || cb->buffer == NULL)
-        return false;
+        strcpy( data.buffer, "\0" );;
 
     if(CB_empty(cb))
         printf("warning: circular buffer is empty. waiting for data\n");
     else{
+        //data =  cb->buffer[read_offset];
         data = *(cb->buffer + cb->read_offset);
         cb->read_offset += 1;
         if (cb->read_offset == cb->size - 1)
