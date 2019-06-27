@@ -1,5 +1,3 @@
-# mmap_shared_circular_buffers
-# this contains master and slave processess that share data with shared circular buffers using mmap
 # MMAP shared circular buffer
 
 This example provides a single producer single consumer shared circular buffer.
