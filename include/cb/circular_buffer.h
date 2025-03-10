@@ -1,5 +1,5 @@
-#ifndef CIRCULAR_BUFFER_H_   /* Include guard for header*/
-#define CIRCULAR_BUFFER_H_
+#ifndef INCLUDE_CIRCULAR_BUFFER_H_   /* Include guard for header */
+#define INCLUDE_CIRCULAR_BUFFER_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-#ifndef CIRCULAR_BUFFER_SIZE   /* Include guard for buffer size*/
+#ifndef CIRCULAR_BUFFER_SIZE   /* Include guard for buffer size */
 #define CIRCULAR_BUFFER_SIZE 1024
 #endif
 
@@ -42,4 +42,4 @@ cb_buffer_struct CB_pop(circular_buffer* cb);				/* pop data from circular buffe
 bool CB_full(circular_buffer* cb);				/* check for buffer full condition */
 bool CB_empty(circular_buffer* cb);				/* check for buffer empty condition */
 
-#endif // CIRCULAR_BUFFER_H_
+#endif // INCLUDE_CIRCULAR_BUFFER_H_
