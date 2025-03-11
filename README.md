@@ -1,3 +1,4 @@
+![Build](https://github.com/shanakaprageeth/mmap_shared_circular_buffers/actions/workflows/ci.yml/badge.svg)
 # MMAP shared circular buffer
 
 This example provides a single producer single consumer shared circular buffer.
@@ -10,28 +11,32 @@ These instructions will get you a copy of the project up and running on your loc
 
 gcc, make
 
-### Installing
+### Building
 
 Please use following commands to compile master and slave tests
 ``` 
-make compile_master
-make compile_slave
+mkdir -p build
+cd build
+cmake ../
+cmake --build .
 ``` 
 
 ## Running the tests
 
 First create the required mmap file handlers using following command
 ``` 
-make create_files
+echo "sample text" > SharedMem
+echo "sample text" > SharedMemStat
 ``` 
-or use run_master template to execute the master code
+Execute master
 ``` 
-make run_master
+./build/bin/apps/master_app SharedMemStat SharedMem 
 ``` 
 Afterwards start the slave using 
 ``` 
-make run_slave
+./build/bin/apps/slave_app SharedMemStat SharedMem 
 ``` 
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
+

@@ -1,8 +1,8 @@
 compile_master :
-	gcc master/main.c circular_buffer.c -o master_exe
+	gcc -Iinclude apps/master.c src/cb/circular_buffer.c -o master_app
 
 compile_slave :
-	gcc slave/main.c circular_buffer.c -o slave_exe
+	gcc -Iinclude apps/slave.c src/cb/circular_buffer.c -o slave_app
 
 create_files :
 	echo "sample text" > SharedMem
@@ -11,14 +11,14 @@ create_files :
 run_master :
 	echo "sample text" > SharedMem
 	echo "sample text" > SharedMemStat	
-	./master_exe SharedMemStat SharedMem 
+	./master_app SharedMemStat SharedMem 
 
 run_slave :	
-	./slave_exe SharedMemStat SharedMem 
+	./slave_app SharedMemStat SharedMem 
 
 clean :
 	rm SharedMem
 	rm SharedMemStat
-	rm master_exe
-	rm slave_exe
+	rm master_app
+	rm slave_app
 
