@@ -1,4 +1,4 @@
-![Build](https://github.com/shanakaprageeth/mmap_shared_circular_buffers/actions/workflows/ci.yml/badge.svg)
+![Build](https://github.com/shanakaprageeth/mmap_shared_circular_buffers/actions/workflows/.ci.yml/badge.svg)
 # MMAP shared circular buffer
 
 This example provides a single producer single consumer shared circular buffer.
