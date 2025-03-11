@@ -11,3 +11,12 @@ jobs:
 
       - name: Build Project
         uses: threeal/cmake-action@v2.1.0
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: |
+            build/bin
+            build/lib
+            include
